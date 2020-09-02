@@ -1,0 +1,15 @@
+{
+    "ignore": [
+        "**/*.test.ts",
+        "**/*.spec.ts",
+        ".git",
+        "node_modules"
+    ],
+    "watch": [
+        "src",
+        "package-lock.json"
+    ],
+    "exec": "babel-node --extensions \".ts\" src/index.ts",
+    "ext": "ts",
+    "inspect": true
+}
