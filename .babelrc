@@ -15,6 +15,13 @@
                     "+utils": "./src/utils"
                 }
             }
+        ],
+        [
+            "transform-runtime",
+            {
+                "polyfill": false,
+                "regenerator": true
+            }
         ]
     ],
     "env": {

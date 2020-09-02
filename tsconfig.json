@@ -10,7 +10,7 @@
         "removeComments": false,
         "suppressImplicitAnyIndexErrors": true,
         "strictNullChecks": true,
-        "target": "esnext",
+        "target": "es2015",
         "noImplicitThis": true,
         "allowSyntheticDefaultImports": true,
         "baseUrl": "./",
