@@ -26,6 +26,9 @@
         "url": "https://github.com/fidelisojeah/todo/issues"
     },
     "homepage": "https://github.com/fidelisojeah/todo#readme",
+    "engines": {
+        "node": "14.x"
+    },
     "dependencies": {
         "api-query-params": "^4.15.0",
         "compression": "^1.7.4",
