@@ -146,7 +146,7 @@ export class Application {
         }
         this.server = http.createServer(this.app);
 
-        const port = this.normalizePort(process.env.SERVER_PORT || '3000');
+        const port = this.normalizePort(process.env.PORT || process.env.SERVER_PORT || '3000');
         this.server.listen(port);
         logger.info('Express server started.');
     }
