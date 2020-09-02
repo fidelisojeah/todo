@@ -1,0 +1,40 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "outDir": "./build",
+        "noImplicitAny": true,
+        "resolveJsonModule": true,
+        "moduleResolution": "node",
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "removeComments": false,
+        "suppressImplicitAnyIndexErrors": true,
+        "strictNullChecks": true,
+        "target": "esnext",
+        "noImplicitThis": true,
+        "allowSyntheticDefaultImports": true,
+        "baseUrl": "./",
+        "esModuleInterop": true,
+        "declaration": true,
+        "strict": true,
+        "paths": {
+            "*": ["src/types/*"],
+            "+api/*": ["src/api/*"],
+            "+controllers/*": ["src/controllers/*"],
+            "+core/*": ["src/core/*"],
+            "+interfaces/*": ["src/interfaces/*"],
+            "+models/*": ["src/models/*"],
+            "+serializer/*": ["src/serializer/*"],
+            "+utils/*": ["src/utils/*"],
+            "+api": ["src/api"],
+            "+controllers": ["src/controllers"],
+            "+core": ["src/core"],
+            "+interfaces": ["src/interfaces"],
+            "+models": ["src/models"],
+            "+serializer": ["src/serializer"],
+            "+utils": ["src/utils"]
+        }
+    },
+    "include": ["src", "test"],
+    "exclude": ["jest.config.js"]
+}

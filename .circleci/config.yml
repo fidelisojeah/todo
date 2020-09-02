@@ -1,0 +1,29 @@
+version: 2.1
+jobs:
+    build_and_test:
+        docker:
+            - image: node:lts-alpine
+            - image: mongo
+        steps:
+            - checkout
+            - restore_cache:
+                  keys:
+                      - v1-dependencies-{{ checksum "package.json" }}
+                      # fallback to using the latest cache if no exact match is found
+                      - v1-dependencies-
+            - run: npm install
+            - save_cache:
+                  paths:
+                      - node_modules
+                  key: v1-dependencies-{{ checksum "package.json" }}
+            - run: npm run lint
+            - run: npm run build
+            - run:
+                  name: Testing
+                  command: npm run test -- --ci
+                  environment:
+                      JEST_JUNIT_OUTPUT_DIR: ./reports/junit/
+            - store_test_results:
+                  path: ./reports/junit/
+            - store_artifacts:
+                  path: ./reports/junit

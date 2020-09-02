@@ -1,0 +1,529 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "Todo Backend",
+        "description": "Todos APIs",
+        "contact": {
+            "email": "fidelis.ojeah@gmail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000/v1"
+        }
+    ],
+    "paths": {
+        "/tasks": {
+            "get": {
+                "tags": ["tasks"],
+                "summary": "Find and filter tasks",
+                "description": "Returns list of non blacklisted tasks",
+                "operationId": "filterTasks",
+                "parameters": [
+                    {
+                        "name": "title",
+                        "in": "query",
+                        "description": "Filter by title",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "description",
+                        "in": "query",
+                        "description": "Filter by tasks you have description",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "Filter tasks by status",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "categories",
+                        "in": "query",
+                        "description": "Filter tasks by categories",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "description": "Filter tasks by id",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sort tasks by parameter",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID type supplied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "User ID not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError404"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": ["tasks"],
+                "summary": "Create a new task",
+                "description": "create a new Task",
+                "operationId": "createTask",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TaskRequest"
+                            }
+                        }
+                    }
+                },
+
+                "responses": {
+                    "201": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseSingle"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid types supplied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Task ID not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError404"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        "/tasks/{id}": {
+            "put": {
+                "tags": ["tasks"],
+                "summary": "Update a task by it's ID",
+                "description": "Update the properties of a task by it's ID, ensure all fields are put in",
+                "operationId": "updateTask",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of task",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TaskRequest"
+                            }
+                        }
+                    }
+                },
+
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseSingle"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid types supplied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Task ID not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError404"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": ["tasks"],
+                "summary": "Partial update a task by it's ID",
+                "description": "Update the properties of a task by it's ID, only modified fields required",
+                "operationId": "updateTaskPatch",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of task",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TaskRequest"
+                            }
+                        }
+                    }
+                },
+
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseSingle"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid types supplied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Task ID not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError404"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "get": {
+                "tags": ["tasks"],
+                "summary": "Retrieve a task by it's ID",
+                "description": "Retrieve a task by it's ID",
+                "operationId": "getTask",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of task",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseSingle"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID type supplied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Task ID not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError404"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": ["tasks"],
+                "summary": "Delete a task by it's ID",
+                "description": "Delete the properties of a task by it's ID",
+                "operationId": "deleteTask",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID of task",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+
+                "responses": {
+                    "204": {
+                        "description": "successful operation"
+                    },
+                    "400": {
+                        "description": "Invalid ID type supplied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Task ID not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError404"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "APIResponseError400": {
+                "type": "object",
+                "properties": {
+                    "VERSION": {
+                        "type": "string"
+                    },
+                    "statusCode": {
+                        "type": "number",
+                        "format": "int64"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {}
+                        }
+                    }
+                }
+            },
+            "APIResponseError404": {
+                "type": "object",
+                "properties": {
+                    "VERSION": {
+                        "type": "string"
+                    },
+                    "statusCode": {
+                        "type": "number",
+                        "format": "int64"
+                    },
+                    "message": {
+                        "type": "string",
+                        "default": "EntityNotFoundException"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "help": {
+                                    "type": "string",
+                                    "default": "Method: GET"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "APIResponse": {
+                "type": "object",
+                "properties": {
+                    "VERSION": {
+                        "type": "string"
+                    },
+                    "statusCode": {
+                        "type": "number",
+                        "format": "int64"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/TaskResponse"
+                        }
+                    }
+                }
+            },
+            "APIResponseSingle": {
+                "type": "object",
+                "properties": {
+                    "VERSION": {
+                        "type": "string"
+                    },
+                    "statusCode": {
+                        "type": "number",
+                        "format": "int64"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "$ref": "#/components/schemas/TaskResponse"
+                    }
+                }
+            },
+            "TaskResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "due": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "dueDescription": {
+                        "type": "string"
+                    },
+                    "categories": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["Done", "Pending", "Canceled"]
+                    }
+                }
+            },
+            "TaskRequest": {
+                "type": "object",
+                "properties": {
+                    "due": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "categories": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "title": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": ["done", "pending", "canceled"]
+                    }
+                }
+            }
+        }
+    },
+    "externalDocs": {
+        "description": "Find out more about more",
+        "url": "https://github.com/fidelisojeah/todo"
+    }
+}

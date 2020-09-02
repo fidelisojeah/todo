@@ -1,0 +1,46 @@
+{
+    "presets": ["@babel/preset-env", "@babel/typescript"],
+    "plugins": [
+        "@babel/proposal-class-properties",
+        [
+            "module-resolver",
+            {
+                "alias": {
+                    "+api": "./src/api",
+                    "+controllers": "./src/controllers",
+                    "+core": "./src/core",
+                    "+interfaces": "./src/interfaces",
+                    "+models": "./src/models",
+                    "+serializer": "./src/serializer",
+                    "+utils": "./src/utils"
+                }
+            }
+        ]
+    ],
+    "env": {
+        "test": {
+            "presets": [
+                [
+                    "@babel/preset-env",
+                    {
+                        "targets": {
+                            "node": "current"
+                        }
+                    }
+                ]
+            ]
+        },
+        "development": {
+            "presets": [
+                [
+                    "@babel/preset-env",
+                    {
+                        "targets": {
+                            "node": "current"
+                        }
+                    }
+                ]
+            ]
+        }
+    }
+}
