@@ -1,7 +1,7 @@
 {
     "name": "todo-backend-task",
     "version": "1.0.0",
-    "description": "",
+    "description": "backend todo task",
     "main": "index.js",
     "scripts": {
         "clean": "rm -rf ./build/*",
@@ -26,7 +26,11 @@
         "url": "https://github.com/fidelisojeah/todo/issues"
     },
     "homepage": "https://github.com/fidelisojeah/todo#readme",
+    "engines": {
+        "node": "14.x"
+    },
     "dependencies": {
+        "@babel/runtime": "^7.11.2",
         "api-query-params": "^4.15.0",
         "compression": "^1.7.4",
         "dotenv": "^8.2.0",
@@ -50,6 +54,7 @@
         "@babel/core": "^7.11.5",
         "@babel/node": "^7.10.5",
         "@babel/plugin-proposal-class-properties": "^7.10.4",
+        "@babel/plugin-transform-runtime": "^7.11.5",
         "@babel/preset-env": "^7.11.5",
         "@babel/preset-typescript": "^7.10.4",
         "@babel/register": "^7.11.5",
