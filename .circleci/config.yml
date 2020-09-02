@@ -2,28 +2,32 @@ version: 2.1
 jobs:
     build_and_test:
         docker:
-            - image: node:lts-alpine
-            - image: mongo
+            - image: circleci/node:lts
+            - image: circleci/mongo:latest
         steps:
             - checkout
             - restore_cache:
                   keys:
-                      - v1-dependencies-{{ checksum "package.json" }}
+                      - v1-dependencies-{{ checksum "package-lock.json" }}-v1
                       # fallback to using the latest cache if no exact match is found
-                      - v1-dependencies-
+                      - v1-dependencies-v1
             - run: npm install
             - save_cache:
                   paths:
                       - node_modules
-                  key: v1-dependencies-{{ checksum "package.json" }}
+                  key: v1-dependencies-{{ checksum "package-lock.json" }}-v1
             - run: npm run lint
             - run: npm run build
             - run:
                   name: Testing
                   command: npm run test -- --ci
                   environment:
-                      JEST_JUNIT_OUTPUT_DIR: ./reports/junit/
+                      JEST_JUNIT_OUTPUT_DIR: junit
             - store_test_results:
-                  path: ./reports/junit/
+                  path: junit
             - store_artifacts:
-                  path: ./reports/junit
+                  path: junit
+workflows:
+    default:
+        jobs:
+            - build_and_test
