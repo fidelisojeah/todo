@@ -6,7 +6,7 @@ export default class QueryValidationError extends GenericException {
     constructor(data: object) {
         const params = {
             name: 'QueryValidationError',
-            message: `Invalid Query suplied.`,
+            message: `Invalid query supplied.`,
             data,
             statusCode: BAD_REQUEST
         };

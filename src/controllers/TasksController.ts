@@ -39,11 +39,12 @@ export class TasksController {
             ...this.validateQuery('filter', filter, validQueryProperties),
             ...this.validateQuery('sort', sort, validQueryProperties)
         };
+
         if (Object.keys(filterErrors).length > 0) {
             throw new QueryValidationError(filterErrors);
         }
 
-        const data = await Tasks.find(filter)
+        const data = await Tasks.find({ ...filter, userId: response.locals.userId })
             .sort({ due: -1, createdAt: -1, ...sort }) // add some defaultt sorting, would be excluded later
             .exec();
 
@@ -73,7 +74,7 @@ export class TasksController {
     private async createTask(request: express.Request, response: express.Response) {
         const input = TasksSerializer.serializeInput(request.body);
 
-        const data = await new Tasks(input).save();
+        const data = await new Tasks({ ...input, userId: response.locals.userId }).save();
 
         response.responseModule(
             {
@@ -86,7 +87,7 @@ export class TasksController {
     }
 
     private async updateTask(request: express.Request, response: express.Response) {
-        const task = await Tasks.findById(request.params.id);
+        const task = await Tasks.findOne({ _id: request.params.id, userId: response.locals.userId });
 
         if (!task) {
             throw new EntityNotFoundException('Task does not exist', request);
@@ -111,7 +112,7 @@ export class TasksController {
     }
 
     private async getTask(request: express.Request, response: express.Response) {
-        const task = await Tasks.findById(request.params.id);
+        const task = await Tasks.findOne({ _id: request.params.id, userId: response.locals.userId });
 
         if (!task) {
             throw new EntityNotFoundException('Task does not exist', request);
@@ -127,13 +128,12 @@ export class TasksController {
     }
 
     private async deleteTask(request: express.Request, response: express.Response) {
-        const task = await Tasks.findById(request.params.id);
-
+        const task = await Tasks.findOne({ _id: request.params.id, userId: response.locals.userId });
         if (!task) {
             throw new EntityNotFoundException('Task does not exist', request);
         }
 
-        task.deleteOne();
+        await task.deleteOne();
 
         response.responseModule({
             data: {},

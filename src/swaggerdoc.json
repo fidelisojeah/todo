@@ -14,16 +14,203 @@
     },
     "servers": [
         {
-            "url": "http://localhost:3000/v1"
+            "url": "/v1"
         }
     ],
     "paths": {
+        "/users": {
+            "post": {
+                "tags": ["users"],
+                "summary": "Create a new user",
+                "description": "create a new user, email is unique",
+                "operationId": "createUser",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SignupRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserAPIResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid types supplied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "tags": ["users"],
+                "summary": "Modify a user",
+                "description": "modify an existing user",
+                "operationId": "updateUser",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserModificationRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserAPIResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid types supplied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unable to authorize user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError401"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": ["users"],
+                "summary": "Modify a user",
+                "description": "modify an existing user",
+                "operationId": "updateUser",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserModificationRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UserAPIResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid types supplied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unable to authorize user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError401"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/users/auth": {
+            "post": {
+                "tags": ["user login"],
+                "summary": "Logs a user in",
+                "description": "Logs a user into system, response is token",
+                "operationId": "loginUser",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UserLoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/LoginAPIResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid types supplied",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/tasks": {
             "get": {
                 "tags": ["tasks"],
                 "summary": "Find and filter tasks",
                 "description": "Returns list of non blacklisted tasks",
                 "operationId": "filterTasks",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
                     {
                         "name": "title",
@@ -86,7 +273,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/APIResponse"
+                                    "$ref": "#/components/schemas/TaskAPIResponse"
                                 }
                             }
                         }
@@ -97,6 +284,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unable to authorize user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError401"
                                 }
                             }
                         }
@@ -118,6 +315,11 @@
                 "summary": "Create a new task",
                 "description": "create a new Task",
                 "operationId": "createTask",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "requestBody": {
                     "content": {
                         "application/json": {
@@ -149,6 +351,16 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Unable to authorize user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError401"
+                                }
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Task ID not found",
                         "content": {
@@ -169,6 +381,11 @@
                 "summary": "Update a task by it's ID",
                 "description": "Update the properties of a task by it's ID, ensure all fields are put in",
                 "operationId": "updateTask",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
                     {
                         "name": "id",
@@ -207,6 +424,16 @@
                             "application/json": {
                                 "schema": {
                                     "$ref": "#/components/schemas/APIResponseError400"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unable to authorize user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError401"
                                 }
                             }
                         }
@@ -228,6 +455,11 @@
                 "summary": "Partial update a task by it's ID",
                 "description": "Update the properties of a task by it's ID, only modified fields required",
                 "operationId": "updateTaskPatch",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
                     {
                         "name": "id",
@@ -270,6 +502,16 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Unable to authorize user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError401"
+                                }
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Task ID not found",
                         "content": {
@@ -287,6 +529,11 @@
                 "summary": "Retrieve a task by it's ID",
                 "description": "Retrieve a task by it's ID",
                 "operationId": "getTask",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
                     {
                         "name": "id",
@@ -319,6 +566,16 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Unable to authorize user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError401"
+                                }
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Task ID not found",
                         "content": {
@@ -336,6 +593,11 @@
                 "summary": "Delete a task by it's ID",
                 "description": "Delete the properties of a task by it's ID",
                 "operationId": "deleteTask",
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ],
                 "parameters": [
                     {
                         "name": "id",
@@ -362,6 +624,16 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Unable to authorize user",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/APIResponseError401"
+                                }
+                            }
+                        }
+                    },
                     "404": {
                         "description": "Task ID not found",
                         "content": {
@@ -377,7 +649,36 @@
         }
     },
     "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        },
         "schemas": {
+            "APIResponseError401": {
+                "type": "object",
+                "properties": {
+                    "VERSION": {
+                        "type": "string"
+                    },
+                    "statusCode": {
+                        "type": "number",
+                        "format": "int64"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {}
+                        }
+                    }
+                }
+            },
             "APIResponseError400": {
                 "type": "object",
                 "properties": {
@@ -428,7 +729,43 @@
                     }
                 }
             },
-            "APIResponse": {
+            "UserAPIResponse": {
+                "type": "object",
+                "properties": {
+                    "VERSION": {
+                        "type": "string"
+                    },
+                    "statusCode": {
+                        "type": "number",
+                        "format": "int64"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/UserResponse"
+                        }
+                    }
+                }
+            },
+            "LoginAPIResponse": {
+                "type": "object",
+                "properties": {
+                    "VERSION": {
+                        "type": "string"
+                    },
+                    "statusCode": {
+                        "type": "number",
+                        "format": "int64"
+                    },
+                    "data": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/LoginResponse"
+                        }
+                    }
+                }
+            },
+            "TaskAPIResponse": {
                 "type": "object",
                 "properties": {
                     "VERSION": {
@@ -517,6 +854,112 @@
                     "status": {
                         "type": "string",
                         "enum": ["done", "pending", "canceled"]
+                    }
+                }
+            },
+            "SignupRequest": {
+                "type": "object",
+                "properties": {
+                    "profile": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "gender": {
+                                "type": "string"
+                            },
+                            "timezone": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UserResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "gender": {
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UserLoginRequest": {
+                "type": "object",
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "password": {
+                        "type": "string"
+                    }
+                }
+            },
+            "LoginResponse": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "gender": {
+                        "type": "string"
+                    },
+                    "timezone": {
+                        "type": "string"
+                    },
+                    "token": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UserModificationRequest": {
+                "type": "object",
+                "properties": {
+                    "profile": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "gender": {
+                                "type": "string"
+                            },
+                            "timezone": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
                     }
                 }
             }

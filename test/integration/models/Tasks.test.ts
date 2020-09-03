@@ -1,5 +1,6 @@
 import { TasksStatus } from '+interfaces/enums';
 import { Tasks } from '+models/Tasks';
+import { Users, UserDocument } from '+models/Users';
 import faker from 'faker';
 import { Server } from 'http';
 import Mongoose from 'mongoose';
@@ -9,6 +10,7 @@ import { Application } from '../../../src/Application';
 describe('Tasks Model', () => {
     let futureDate: Date;
     let application: Application;
+    let user: UserDocument;
     beforeAll(async () => {
         const listenSpy = jest.spyOn(Server.prototype, 'listen').mockImplementation();
 
@@ -16,6 +18,15 @@ describe('Tasks Model', () => {
         await application.start();
 
         listenSpy.mockRestore();
+        user = await new Users({
+            profile: {
+                name: faker.fake('{{name.firstName}} {{name.lastName}}'),
+                gender: faker.fake('{{name.gender}}'),
+                timezone: faker.fake('{{address.timeZone}}')
+            },
+            email: faker.internet.email(),
+            password: faker.internet.password()
+        }).save();
     });
 
     beforeEach(async () => {
@@ -24,7 +35,8 @@ describe('Tasks Model', () => {
             title: faker.lorem.words(2),
             description: faker.lorem.text(),
             due: futureDate,
-            status: TasksStatus.Pending
+            status: TasksStatus.Pending,
+            userId: user._id
         }).save();
     });
 
@@ -37,6 +49,7 @@ describe('Tasks Model', () => {
     afterAll(async () => {
         jest.restoreAllMocks();
         await application.shutdown();
+        await Users.deleteMany({});
     });
 
     describe('Validation Failures', () => {
