@@ -34,7 +34,8 @@ const errorHandler = (error: Error, _: Request, response: Response, _next: NextF
     }
 
     if (error instanceof mongoose.Error.ValidationError) {
-        const data = Object.keys(error.errors).reduce((result: ValidationErrorResult, value: string) => {
+        const data = Object.keys(error.errors).reduce((result: ValidationErrorResult, val: string) => {
+            const value = val === 'userId' ? 'global' : val;
             if (!Object.prototype.hasOwnProperty.call(result, value)) {
                 result[value] = [];
             }

@@ -1,4 +1,4 @@
-import { errorHandler, logger, notFound, responseModule } from '+utils';
+import { errorHandler, logger, notFound, responseModule, validateTokenMiddleware } from '+utils';
 import compression from 'compression';
 import express, { Request, Response } from 'express';
 import helmet from 'helmet';
@@ -7,7 +7,7 @@ import morgan from 'morgan';
 import mongoose from 'mongoose';
 
 import '+utils/load-envs';
-import { TasksController } from '+controllers';
+import { TasksController, UsersController } from '+controllers';
 
 import swaggerUI from 'swagger-ui-express';
 import swaggerDoc from './swaggerdoc.json';
@@ -154,7 +154,8 @@ export class Application {
     private configureExpress() {
         this.app.use(responseModule);
         this.app.use('/healthcheck', this.onHealthCheck());
-        this.app.use('/v1/tasks', TasksController);
+        this.app.use('/v1/tasks', validateTokenMiddleware, TasksController);
+        this.app.use('/v1/users', UsersController);
         this.app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDoc));
         this.app.use(notFound);
         this.app.use(errorHandler);

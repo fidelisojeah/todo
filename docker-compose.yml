@@ -15,6 +15,7 @@ services:
         environment:
             - MONGO_URI=mongodb://database:27017/todo
             - LOGGER_LEVEL=${LOGGER_LEVEL}
+            - SECRET=${SECRET}
             - NODE_ENV=${NODE_ENV}
             - SERVER_PORT=3000
         depends_on:

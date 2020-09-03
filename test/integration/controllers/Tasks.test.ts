@@ -1,18 +1,25 @@
+import { Tasks, TasksInterfaceDocument } from '+models/Tasks';
+import { TasksStatus } from '+interfaces/enums';
+import { Users, UserDocument } from '+models/Users';
+import { generateToken } from '+utils';
 import Express from 'express';
 import { Server } from 'http';
 import faker from 'faker';
 import request from 'supertest';
-import { Application } from '../../../src/Application';
-import { Tasks, TasksInterfaceDocument } from '+models/Tasks';
-import { TasksStatus } from '+interfaces/enums';
 import mongoose from 'mongoose';
+
+import { Application } from '../../../src/Application';
 
 describe('v1/tasks', () => {
     let express: Express.Application | undefined;
     let application: Application;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let futureDate: Date;
+    let user: UserDocument;
+    let secondUser: UserDocument;
     let task: TasksInterfaceDocument;
+    let secondToken: string;
+    let token: string;
+
     beforeAll(async () => {
         const listenSpy = jest.spyOn(Server.prototype, 'listen').mockImplementation();
 
@@ -21,6 +28,26 @@ describe('v1/tasks', () => {
 
         express = application.app;
         listenSpy.mockRestore();
+        user = await new Users({
+            profile: {
+                name: faker.fake('{{name.firstName}} {{name.lastName}}'),
+                gender: faker.fake('{{name.gender}}'),
+                timezone: faker.fake('{{address.timeZone}}')
+            },
+            email: faker.internet.email(),
+            password: faker.internet.password()
+        }).save();
+        secondUser = await new Users({
+            profile: {
+                name: faker.fake('{{name.firstName}} {{name.lastName}}'),
+                gender: faker.fake('{{name.gender}}'),
+                timezone: faker.fake('{{address.timeZone}}')
+            },
+            email: faker.internet.email(),
+            password: faker.internet.password()
+        }).save();
+        token = generateToken(user._id);
+        secondToken = generateToken(secondUser._id);
     });
 
     beforeEach(async () => {
@@ -29,7 +56,8 @@ describe('v1/tasks', () => {
             title: faker.lorem.words(2),
             description: faker.lorem.text(),
             due: futureDate,
-            categories: ['work', 'family']
+            categories: ['work', 'family'],
+            userId: user._id
         }).save();
     });
 
@@ -41,11 +69,13 @@ describe('v1/tasks', () => {
 
     afterAll(async () => {
         jest.restoreAllMocks();
+        await Users.deleteMany({});
         await application.shutdown();
     });
 
     describe('GET /v1/tasks', () => {
         let multiTasks: TasksInterfaceDocument[];
+        let secondUsersTask: TasksInterfaceDocument;
         beforeEach(async () => {
             const tasksSeed = Array.from(Array(10)).map((_, idx) =>
                 new Tasks({
@@ -53,21 +83,31 @@ describe('v1/tasks', () => {
                     description: faker.lorem.text(),
                     due: idx !== 5 ? futureDate : new Date(new Date().getTime() + 2800000),
                     status: idx < 4 ? TasksStatus.Pending : idx < 8 ? TasksStatus.Canceled : TasksStatus.Done,
-                    categories: [...(idx > 8 ? ['home', 'friends'] : idx < 3 ? [] : ['family', 'work', 'outdoors'])]
+                    categories: [...(idx > 8 ? ['home', 'friends'] : idx < 3 ? [] : ['family', 'work', 'outdoors'])],
+                    userId: user._id
                 }).save()
             );
             await Promise.all(tasksSeed);
             multiTasks = await Promise.all(tasksSeed);
+
+            secondUsersTask = await new Tasks({
+                title: faker.lorem.words(2),
+                description: faker.lorem.text(),
+                due: futureDate,
+                categories: ['work', 'family'],
+                userId: secondUser._id
+            }).save();
         });
 
         it('should return error when querying with invalid filter parameters', async () => {
             const response = await request(express)
                 .get('/v1/tasks?badParam=stuff&sort=-badsort&title=sample')
+                .set('Authorization', `Bearer ${token}`)
                 .expect('Content-Type', /json/);
 
             expect(response.status).toBe(400);
 
-            expect(response.body.message).toEqual(`Invalid Query suplied.`);
+            expect(response.body.message).toEqual(`Invalid query supplied.`);
             expect(response.body.name).toEqual('QueryValidationError');
             expect(response.body.data).toMatchObject({
                 badParam: ['badParam is not a valid filter.'],
@@ -76,14 +116,20 @@ describe('v1/tasks', () => {
         });
 
         it('should return all tasks that match the filter (none)', async () => {
-            const response = await request(express).get('/v1/tasks?title=xxxxxx').expect('Content-Type', /json/);
+            const response = await request(express)
+                .get('/v1/tasks?title=xxxxxx')
+                .set('Authorization', `Bearer ${token}`)
+                .expect('Content-Type', /json/);
 
             expect(response.status).toBe(200);
             expect(response.body.data).toHaveLength(0);
         });
 
         it('should return all tasks that match single filter', async () => {
-            const response = await request(express).get('/v1/tasks?status=done').expect('Content-Type', /json/);
+            const response = await request(express)
+                .get('/v1/tasks?status=done')
+                .set('Authorization', `Bearer ${token}`)
+                .expect('Content-Type', /json/);
 
             expect(response.status).toBe(200);
             expect(response.body.data.length).toBeGreaterThanOrEqual(2);
@@ -93,6 +139,7 @@ describe('v1/tasks', () => {
         it('should return tasks that match multiple filters', async () => {
             const response = await request(express)
                 .get('/v1/tasks?status=done&categories=home,work')
+                .set('Authorization', `Bearer ${token}`)
                 .expect('Content-Type', /json/);
 
             expect(response.status).toBe(200);
@@ -100,7 +147,10 @@ describe('v1/tasks', () => {
         });
 
         it('should return all tasks and sort by due date', async () => {
-            const response = await request(express).get('/v1/tasks?sort=-due').expect('Content-Type', /json/);
+            const response = await request(express)
+                .get('/v1/tasks?sort=-due')
+                .set('Authorization', `Bearer ${token}`)
+                .expect('Content-Type', /json/);
 
             expect(response.status).toBe(200);
 
@@ -108,12 +158,26 @@ describe('v1/tasks', () => {
 
             expect(response.body.data[0].id).toEqual(multiTasks[5]._id.toString());
         });
+
+        it('should only return tasks for particular user', async () => {
+            const response = await request(express)
+                .get('/v1/tasks?sort=-due')
+                .set('Authorization', `Bearer ${secondToken}`)
+                .expect('Content-Type', /json/);
+
+            expect(response.status).toBe(200);
+
+            expect(response.body.data.length).toEqual(1);
+
+            expect(response.body.data[0].id).toEqual(secondUsersTask._id.toString());
+        });
     });
 
     describe('POST v1/tasks', () => {
         it('should fail when there are errors in data', async () => {
             const response = await request(express)
                 .post('/v1/tasks')
+                .set('Authorization', `Bearer ${token}`)
                 .send({
                     status: 'very bad',
                     due: 'bad too'
@@ -128,9 +192,29 @@ describe('v1/tasks', () => {
             expect(response.body.data.status).toEqual(['`status` is invalid.']);
         });
 
+        it('should fail when user does not exist', async () => {
+            const fakeToken = generateToken(mongoose.Types.ObjectId().toString());
+
+            const response = await request(express)
+                .post('/v1/tasks')
+                .set('Authorization', `Bearer ${fakeToken}`)
+                .send({
+                    due: futureDate,
+                    description: 'This is a sample task',
+                    title: 'sample'
+                })
+                .expect('Content-Type', /json/);
+
+            expect(response.status).toBe(401);
+            expect(response.body.message).toContain('Error decoding token');
+
+            expect(response.body.data.global).toEqual('Authorization failed, user does not exist.');
+        });
+
         it('should create a new task', async () => {
             const response = await request(express)
                 .post('/v1/tasks')
+                .set('Authorization', `Bearer ${token}`)
                 .send({
                     due: futureDate,
                     description: 'This is a sample task',
@@ -148,10 +232,13 @@ describe('v1/tasks', () => {
         });
     });
 
-    describe('GET /v1/tasks/id', () => {
+    describe('GET /v1/tasks/:id', () => {
         it('should return error when task does not exist', async () => {
             const fakeId = mongoose.Types.ObjectId();
-            const response = await request(express).get(`/v1/tasks/${fakeId}`).expect('Content-Type', /json/);
+            const response = await request(express)
+                .get(`/v1/tasks/${fakeId}`)
+                .set('Authorization', `Bearer ${token}`)
+                .expect('Content-Type', /json/);
 
             expect(response.status).toBe(404);
 
@@ -160,8 +247,24 @@ describe('v1/tasks', () => {
             expect(response.body.name).toEqual('EntityNotFoundException');
         });
 
+        it('should not retrieve task for another user', async () => {
+            const response = await request(express)
+                .get(`/v1/tasks/${task._id}`)
+                .set('Authorization', `Bearer ${secondToken}`)
+                .expect('Content-Type', /json/);
+
+            expect(response.status).toBe(404);
+
+            expect(response.body.message).toEqual(`Task does not exist: /v1/tasks/${task._id}`);
+            expect(response.body.data).toMatchObject({ help: 'Method: GET' });
+            expect(response.body.name).toEqual('EntityNotFoundException');
+        });
+
         it('should return a task', async () => {
-            const response = await request(express).get(`/v1/tasks/${task._id}`).expect('Content-Type', /json/);
+            const response = await request(express)
+                .get(`/v1/tasks/${task._id}`)
+                .set('Authorization', `Bearer ${token}`)
+                .expect('Content-Type', /json/);
 
             expect(response.status).toBe(200);
             expect(response.body.data).toMatchObject({
@@ -175,14 +278,12 @@ describe('v1/tasks', () => {
         });
     });
 
-    describe('DELETE /v1/tasks/id', () => {
+    describe('DELETE /v1/tasks/:id', () => {
         it('should return error when task does not exist', async () => {
             const fakeId = mongoose.Types.ObjectId();
             const response = await request(express)
                 .delete(`/v1/tasks/${fakeId}`)
-                .send({
-                    status: TasksStatus.Done
-                })
+                .set('Authorization', `Bearer ${token}`)
                 .expect('Content-Type', /json/);
 
             expect(response.status).toBe(404);
@@ -193,7 +294,10 @@ describe('v1/tasks', () => {
         });
 
         it('should delete task when found', async () => {
-            const response = await request(express).delete(`/v1/tasks/${task._id}`).expect('Content-Type', /json/);
+            const response = await request(express)
+                .delete(`/v1/tasks/${task._id}`)
+                .set('Authorization', `Bearer ${token}`)
+                .expect('Content-Type', /json/);
 
             expect(response.status).toBe(200);
 
@@ -201,11 +305,12 @@ describe('v1/tasks', () => {
         });
     });
 
-    describe('PATCH /v1/tasks/id', () => {
+    describe('PATCH /v1/tasks/:id', () => {
         it('should return error when task does not exist', async () => {
             const fakeId = mongoose.Types.ObjectId();
             const response = await request(express)
                 .patch(`/v1/tasks/${fakeId}`)
+                .set('Authorization', `Bearer ${token}`)
                 .send({
                     status: TasksStatus.Done
                 })
@@ -221,6 +326,7 @@ describe('v1/tasks', () => {
         it('should fail when fields are of invalid type', async () => {
             const response = await request(express)
                 .patch(`/v1/tasks/${task._id}`)
+                .set('Authorization', `Bearer ${token}`)
                 .send({
                     status: 'very bad'
                 })
@@ -234,6 +340,7 @@ describe('v1/tasks', () => {
         it('should modify task status when found', async () => {
             const response = await request(express)
                 .patch(`/v1/tasks/${task._id}`)
+                .set('Authorization', `Bearer ${token}`)
                 .send({
                     status: TasksStatus.Done,
                     categories: ['play']
@@ -250,11 +357,12 @@ describe('v1/tasks', () => {
         });
     });
 
-    describe('PUT /v1/tasks/id', () => {
+    describe('PUT /v1/tasks/:id', () => {
         it('should return error when task does not exist', async () => {
             const fakeId = mongoose.Types.ObjectId();
             const response = await request(express)
                 .put(`/v1/tasks/${fakeId}`)
+                .set('Authorization', `Bearer ${token}`)
                 .send({
                     status: TasksStatus.Done
                 })
@@ -270,6 +378,7 @@ describe('v1/tasks', () => {
         it('should fail when fields are of invalid type', async () => {
             const response = await request(express)
                 .put(`/v1/tasks/${task._id}`)
+                .set('Authorization', `Bearer ${token}`)
                 .send({
                     status: 'very bad'
                 })
@@ -283,6 +392,7 @@ describe('v1/tasks', () => {
         it('should fail when fields are missing', async () => {
             const response = await request(express)
                 .put(`/v1/tasks/${task._id}`)
+                .set('Authorization', `Bearer ${token}`)
                 .send({
                     status: TasksStatus.Done
                 })
@@ -298,6 +408,7 @@ describe('v1/tasks', () => {
         it('should modify task status when found', async () => {
             const response = await request(express)
                 .patch(`/v1/tasks/${task._id}`)
+                .set('Authorization', `Bearer ${token}`)
                 .send({
                     status: TasksStatus.Done,
                     title: 'A random task',

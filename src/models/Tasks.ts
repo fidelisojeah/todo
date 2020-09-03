@@ -1,5 +1,6 @@
-import { Document, Model, model, Schema, SchemaDefinition, SchemaOptions, NativeError } from 'mongoose';
+import { Document, Model, model, Schema, SchemaDefinition, SchemaOptions } from 'mongoose';
 import { TasksStatus } from '+interfaces/enums';
+import { Users } from './Users';
 
 export interface TasksInterface {
     title: string;
@@ -33,7 +34,8 @@ class TasksSchema extends Schema {
             categories: [
                 {
                     type: String,
-                    required: false
+                    required: false,
+                    lowercase: true
                 }
             ],
             status: {
@@ -44,6 +46,21 @@ class TasksSchema extends Schema {
                 required: true,
                 default: TasksStatus.Pending,
                 type: String
+            },
+            userId: {
+                type: Schema.Types.ObjectId,
+                required: true,
+                validate: {
+                    validator: async function (value: Schema.Types.ObjectId) {
+                        const user = await Users.findById(value);
+
+                        if (!user) {
+                            return false;
+                        }
+                        return true;
+                    },
+                    message: 'User does not exist'
+                }
             }
         };
 
@@ -52,13 +69,6 @@ class TasksSchema extends Schema {
         };
 
         super(schema, options);
-
-        this.pre('save', function (this: TasksInterfaceDocument, next: (err?: NativeError) => void) {
-            if (Array.isArray(this.categories)) {
-                this.categories = this.categories.map((c) => c.toLowerCase());
-            }
-            next();
-        });
     }
 }
 
