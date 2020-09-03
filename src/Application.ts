@@ -157,6 +157,9 @@ export class Application {
         this.app.use('/v1/tasks', validateTokenMiddleware, TasksController);
         this.app.use('/v1/users', UsersController);
         this.app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(swaggerDoc));
+        this.app.get('/', (_: Request, response: Response) =>
+            response.responseModule({ message: 'Welcome to the application, docs lives at /api-docs' })
+        );
         this.app.use(notFound);
         this.app.use(errorHandler);
     }
